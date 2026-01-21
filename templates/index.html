@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wine Cultivar Predictor</title>
+    <style>
+        :root {
+            --wine-red: #800020;
+            --soft-gray: #f4f4f9;
+        }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: var(--soft-gray); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+            width: 100%;
+            max-width: 500px;
+        }
+        h2 { 
+            color: var(--wine-red); 
+            text-align: center; 
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--wine-red);
+            padding-bottom: 10px;
+        }
+        .grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+        }
+        .form-group { display: flex; flex-direction: column; }
+        label { 
+            font-size: 12px; 
+            font-weight: bold; 
+            margin-bottom: 5px; 
+            color: #555;
+        }
+        input { 
+            padding: 10px; 
+            border: 1px solid #ccc; 
+            border-radius: 6px; 
+            font-size: 14px;
+        }
+        button { 
+            width: 100%; 
+            background-color: var(--wine-red); 
+            color: white; 
+            padding: 15px; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 20px;
+            transition: opacity 0.3s;
+        }
+        button:hover { opacity: 0.85; }
+        #result-display { 
+            margin-top: 20px; 
+            padding: 15px; 
+            border-radius: 8px; 
+            text-align: center; 
+            display: none;
+            background-color: #fdf2f2;
+            border: 1px solid var(--wine-red);
+        }
+        #result-text { 
+            font-size: 18px; 
+            color: var(--wine-red); 
+            font-weight: bold; 
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🍷 Wine Origin Predictor</h2>
+    <p style="text-align: center; font-size: 13px; color: #666; margin-bottom: 20px;">
+        Input chemical properties to predict the Wine Cultivar.
+    </p>
+
+    <div class="grid">
+        <div class="form-group">
+            <label>Alcohol (%)</label>
+            <input type="number" id="alcohol" step="0.01" placeholder="e.g., 13.2">
+        </div>
+        <div class="form-group">
+            <label>Malic Acid</label>
+            <input type="number" id="malic_acid" step="0.01" placeholder="e.g., 1.78">
+        </div>
+        <div class="form-group">
+            <label>Ash</label>
+            <input type="number" id="ash" step="0.01" placeholder="e.g., 2.14">
+        </div>
+        <div class="form-group">
+            <label>Alcalinity of Ash</label>
+            <input type="number" id="alcalinity_of_ash" step="0.1" placeholder="e.g., 11.2">
+        </div>
+        <div class="form-group">
+            <label>Magnesium</label>
+            <input type="number" id="magnesium" placeholder="e.g., 100">
+        </div>
+        <div class="form-group">
+            <label>Flavanoids</label>
+            <input type="number" id="flavanoids" step="0.01" placeholder="e.g., 2.76">
+        </div>
+    </div>
+
+    <button onclick="submitPrediction()">Predict Cultivar</button>
+
+    <div id="result-display">
+        <div style="font-size: 12px; color: #888;">Predicted Result:</div>
+        <div id="result-text"></div>
+    </div>
+</div>
+
+<script>
+    async function submitPrediction() {
+        const resultDisplay = document.getElementById('result-display');
+        const resultText = document.getElementById('result-text');
+        
+        const inputData = {
+            alcohol: document.getElementById('alcohol').value,
+            malic_acid: document.getElementById('malic_acid').value,
+            ash: document.getElementById('ash').value,
+            alcalinity_of_ash: document.getElementById('alcalinity_of_ash').value,
+            magnesium: document.getElementById('magnesium').value,
+            flavanoids: document.getElementById('flavanoids').value
+        };
+
+        // Basic validation
+        if (Object.values(inputData).some(x => x === "")) {
+            alert("Please fill in all chemical properties.");
+            return;
+        }
+
+        try {
+            const response = await fetch('/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(inputData)
+            });
+
+            const data = await response.json();
+
+            if (data.result) {
+                resultDisplay.style.display = 'block';
+                resultText.innerText = data.result;
+            } else {
+                alert("Error: " + data.error);
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Could not reach the server.");
+        }
+    }
+</script>
+
+</body>
+</html>
